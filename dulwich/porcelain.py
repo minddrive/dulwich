@@ -89,6 +89,7 @@ from dulwich.objects import (
     pretty_format_tree_entry,
     )
 from dulwich.objectspec import (
+    parse_commit,
     parse_object,
     parse_reftuples,
     )
@@ -970,3 +971,19 @@ def ls_tree(repo, tree_ish=None, outstream=sys.stdout, recursive=False,
         c = r[tree_ish]
         treeid = c.tree
         list_tree(r.object_store, treeid, "")
+
+
+def annotate(repo, path, committish=None):
+    """Annotate the history of a file.
+
+    :param repo: Path to the repository
+    :param path: Path to annotate
+    :param committish: Commit id to find path in
+    :return: List of ((Commit, TreeChange), line) tuples
+    """
+    if committish is None:
+        committish = "HEAD"
+    from dulwich.annotate import annotate_lines
+    with open_repo_closing(repo) as r:
+        commit_id = parse_commit(r, committish).id
+        return annotate_lines(r.object_store, commit_id, path)
